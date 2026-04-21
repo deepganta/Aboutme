@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Deep Aman Ganta — AI Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   TOKENS
+===================================================== */
+:root{
+  --black:#03040a;
+  --deep:#070914;
+  --mid:#0c0f1e;
+  --panel:rgba(14,18,34,0.72);
+  --panel-hi:rgba(20,26,50,0.85);
+  --border:rgba(99,130,255,0.14);
+  --border-hi:rgba(99,130,255,0.32);
+  --text:#eef0f8;
+  --dim:#7a82a0;
+  --muted:#41475e;
+  --c1:#4f8cff;   /* primary blue */
+  --c2:#a78bfa;   /* violet */
+  --c3:#34d399;   /* green */
+  --c4:#fb923c;   /* amber */
+  --c5:#f472b6;   /* pink */
+  --glow1:rgba(79,140,255,0.35);
+  --glow2:rgba(167,139,250,0.30);
+  --glow3:rgba(52,211,153,0.25);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--black);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* =====================================================
+   CURSOR
+===================================================== */
+#cursor{
+  position:fixed;width:12px;height:12px;
+  border-radius:50%;background:var(--c1);
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform .08s ease, width .3s ease, height .3s ease, background .3s ease;
+  mix-blend-mode:screen;
+}
+#cursor-ring{
+  position:fixed;width:36px;height:36px;
+  border-radius:50%;border:1px solid rgba(79,140,255,.5);
+  pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:transform .18s ease, width .4s ease, height .4s ease, border-color .3s;
+}
+body:has(a:hover) #cursor{ width:18px; height:18px; background:var(--c2); }
+body:has(a:hover) #cursor-ring{ width:52px; height:52px; border-color:var(--c2); }
+
+/* =====================================================
+   CANVAS LAYER
+===================================================== */
+#bg-canvas{
+  position:fixed;inset:0;z-index:0;
+  pointer-events:none;opacity:.9;
+}
+
+/* =====================================================
+   GRAIN + VIGNETTE
+===================================================== */
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  opacity:.28;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4 0 0 0 0 .4 0 0 0 0 .4 0 0 0 .15 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+}
+.vignette{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(3,4,10,.9) 100%);
+}
+
+main{position:relative;z-index:2;}
+
+/* =====================================================
+   NAV
+===================================================== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:0 40px;height:68px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(3,4,10,.95) 0%,transparent 100%);
+  backdrop-filter:blur(12px);
+}
+.nav-brand{
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:700;letter-spacing:.04em;
+  background:linear-gradient(90deg,var(--c1),var(--c2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  display:flex;align-items:center;gap:10px;
+}
+.nav-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--c3);
+  box-shadow:0 0 12px var(--c3),0 0 4px var(--c3);
+  animation:breathe 2s ease-in-out infinite;
+  -webkit-text-fill-color:initial;
+}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(.7);opacity:.5;}}
+.nav-links{display:flex;gap:4px;}
+.nav-links a{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--dim);text-decoration:none;
+  padding:8px 16px;border-radius:100px;
+  letter-spacing:.08em;
+  transition:color .25s,background .25s;
+}
+.nav-links a:hover{color:var(--text);background:rgba(79,140,255,.1);}
+
+/* =====================================================
+   SECTION SHELL
+===================================================== */
+section{padding:130px 60px;position:relative;}
+.max{max-width:1380px;margin:0 auto;}
+
+/* =====================================================
+   HERO
+===================================================== */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:160px 60px 80px;position:relative;overflow:hidden;
+}
+
+/* 3-D perspective container */
+.hero-scene{
+  perspective:1400px;
+  perspective-origin:40% 50%;
+  position:relative;z-index:3;
+}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:7px 18px;
+  background:rgba(79,140,255,.08);
+  border:1px solid var(--border-hi);
+  border-radius:100px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.12em;color:var(--c1);
+  width:fit-content;margin-bottom:48px;
+  backdrop-filter:blur(10px);
+  animation:fadeUp .8s ease both;
+}
+.hero-badge .live{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--c3);box-shadow:0 0 10px var(--c3);
+  animation:breathe 2s infinite;
+}
+
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(52px,9vw,145px);
+  line-height:.92;letter-spacing:-.035em;
+  color:var(--text);
+  transform:translateZ(0);
+  margin-bottom:0;
+}
+.hero-title .line{
+  display:block;overflow:hidden;
+}
+.hero-title .inner{
+  display:inline-block;
+  animation:slideUp .9s cubic-bezier(.22,.9,.22,1) both;
+}
+.hero-title .line:nth-child(2) .inner{animation-delay:.12s;}
+.hero-title .line:nth-child(3) .inner{animation-delay:.24s;}
+
+@keyframes slideUp{
+  from{transform:translateY(110%) rotateX(-30deg);opacity:0;}
+  to{transform:translateY(0) rotateX(0);opacity:1;}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}
+}
+
+.hero-title .grad{
+  background:linear-gradient(110deg,var(--c1) 0%,var(--c2) 45%,var(--c4) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.hero-sub-row{
+  display:flex;align-items:flex-end;gap:60px;margin-top:52px;
+  animation:fadeUp 1s ease .5s both;
+  flex-wrap:wrap;
+}
+.hero-desc{
+  font-size:17px;line-height:1.65;color:var(--dim);
+  max-width:520px;font-weight:300;
+}
+.hero-desc strong{color:var(--text);font-weight:500;}
+.hero-stats{
+  display:flex;gap:40px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:.06em;flex-wrap:wrap;
+}
+.hstat{display:flex;flex-direction:column;gap:5px;}
+.hstat .val{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:700;
+  color:var(--text);letter-spacing:-.03em;line-height:1;
+}
+.hstat .lbl{text-transform:uppercase;letter-spacing:.12em;font-size:10px;}
+
+/* floating 3d tech chips */
+.tech-chip{
+  position:absolute;
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;
+  background:var(--panel-hi);
+  border:1px solid var(--border);
+  border-radius:12px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--dim);backdrop-filter:blur(16px);
+  box-shadow:0 16px 48px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
+  animation:chipFloat 8s ease-in-out infinite;
+  pointer-events:none;z-index:2;
+}
+.tech-chip .chi{width:18px;height:18px;}
+@keyframes chipFloat{
+  0%,100%{transform:translateY(0) rotateX(0) rotateZ(0);}
+  33%{transform:translateY(-12px) rotateX(4deg) rotateZ(-.8deg);}
+  66%{transform:translateY(8px) rotateX(-2deg) rotateZ(.5deg);}
+}
+
+/* =====================================================
+   SECTION LABEL
+===================================================== */
+.s-label{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c1);margin-bottom:22px;
+}
+.s-label::before{content:'';width:28px;height:1px;background:var(--c1);box-shadow:0 0 8px var(--c1);}
+
+.s-title{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(38px,5.5vw,78px);
+  line-height:.97;letter-spacing:-.025em;
+  color:var(--text);margin-bottom:18px;
+}
+.s-title em{
+  font-style:italic;
+  background:linear-gradient(120deg,var(--c1),var(--c2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.s-sub{font-size:16px;color:var(--dim);max-width:580px;margin-bottom:70px;line-height:1.7;}
+
+/* =====================================================
+   FOCUS CARDS — 3D GLASS TILES
+===================================================== */
+.focus-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:18px;perspective:1600px;
+}
+
+.fc{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:22px;padding:36px 30px 30px;
+  overflow:hidden;min-height:320px;
+  display:flex;flex-direction:column;
+  transform-style:preserve-3d;
+  transition:transform .5s cubic-bezier(.22,.9,.22,1),border-color .3s,box-shadow .4s;
+  box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.fc::before{
+  content:'';position:absolute;inset:-1px;
+  border-radius:22px;
+  background:linear-gradient(135deg,rgba(79,140,255,.18),transparent 50%,rgba(167,139,250,.1));
+  opacity:0;transition:opacity .4s;pointer-events:none;
+}
+.fc:hover{
+  transform:rotateX(6deg) rotateY(-4deg) translateY(-10px) translateZ(20px);
+  border-color:var(--border-hi);
+  box-shadow:0 50px 100px rgba(0,0,0,.65),0 0 60px rgba(79,140,255,.15),inset 0 1px 0 rgba(255,255,255,.09);
+}
+.fc:hover::before{opacity:1;}
+
+/* big ambient glow behind card on hover */
+.fc-glow{
+  position:absolute;top:-60px;right:-60px;
+  width:240px;height:240px;border-radius:50%;
+  filter:blur(50px);opacity:0;
+  transition:opacity .5s;pointer-events:none;
+}
+.fc:hover .fc-glow{opacity:.9;}
+
+.fc-num{
+  position:absolute;top:24px;right:28px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:.08em;
+}
+.fc-icon-wrap{
+  width:54px;height:54px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:22px;
+  background:rgba(79,140,255,.08);
+  border:1px solid var(--border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  flex-shrink:0;
+}
+.fc-title{
+  font-family:'Syne',sans-serif;font-size:24px;font-weight:700;
+  line-height:1.15;color:var(--text);margin-bottom:12px;letter-spacing:-.015em;
+}
+.fc-title em{font-style:italic;color:var(--c1);}
+.fc-desc{font-size:13.5px;line-height:1.6;color:var(--dim);flex:1;margin-bottom:20px;}
+.fc-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.fc-tags span{
+  font-family:'DM Mono',monospace;font-size:10px;
+  padding:4px 10px;border-radius:100px;
+  background:rgba(99,130,255,.07);
+  border:1px solid var(--border);
+  color:var(--dim);
+}
+
+/* =====================================================
+   TECH SYMBOL ORBIT ROW
+===================================================== */
+.tech-orbit{
+  padding:60px 60px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(90deg,var(--deep),var(--mid),var(--deep));
+  overflow:hidden;position:relative;
+}
+.orbit-track{
+  display:flex;gap:0;
+  animation:orbit-scroll 35s linear infinite;
+  width:max-content;
+}
+.orbit-item{
+  display:flex;align-items:center;gap:14px;
+  padding:0 48px;
+  border-right:1px solid var(--border);
+  flex-shrink:0;
+}
+.orbit-item:last-child{border-right:none;}
+.orbit-icon{width:32px;height:32px;flex-shrink:0;}
+.orbit-name{
+  font-family:'DM Mono',monospace;font-size:12px;
+  color:var(--dim);letter-spacing:.06em;white-space:nowrap;
+}
+@keyframes orbit-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+
+/* =====================================================
+   EXPERIENCE
+===================================================== */
+.exp-entry{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:26px;
+  padding:52px 52px 44px;
+  margin-bottom:22px;
+  overflow:hidden;
+  transition:border-color .35s, transform .4s, box-shadow .4s;
+  box-shadow:0 20px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
+}
+.exp-entry:hover{
+  border-color:var(--border-hi);
+  transform:translateY(-5px);
+  box-shadow:0 40px 80px rgba(0,0,0,.5),0 0 40px rgba(79,140,255,.1);
+}
+.exp-entry::before{
+  content:'';position:absolute;top:0;left:0;
+  width:4px;height:100%;
+  background:linear-gradient(180deg,var(--c1),var(--c2));
+  opacity:.8;border-radius:4px 0 0 4px;
+}
+
+/* 3d foil shimmer on card bg */
+.exp-entry::after{
+  content:'';position:absolute;inset:0;border-radius:26px;
+  background:linear-gradient(135deg,rgba(79,140,255,.05) 0%,transparent 50%);
+  pointer-events:none;
+}
+
+.exp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:28px;flex-wrap:wrap;}
+.exp-role{
+  font-family:'Syne',sans-serif;font-size:38px;font-weight:700;
+  line-height:1.06;letter-spacing:-.02em;color:var(--text);
+}
+.exp-role em{font-style:italic;color:var(--c2);}
+.exp-co{
+  display:flex;align-items:center;gap:8px;margin-top:8px;
+  font-family:'DM Mono',monospace;font-size:12px;color:var(--dim);
+}
+.exp-co .co-pip{width:6px;height:6px;border-radius:50%;background:var(--c1);box-shadow:0 0 8px var(--c1);}
+.exp-meta{
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);
+}
+.exp-meta .period{color:var(--text);font-size:13px;}
+.badge-status{
+  padding:4px 12px;border-radius:100px;
+  font-size:10px;letter-spacing:.1em;font-family:'DM Mono',monospace;
+}
+.badge-current{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:var(--c3);}
+.badge-prior{background:rgba(99,130,255,.07);border:1px solid var(--border);color:var(--dim);}
+
+.exp-summary{
+  font-size:18px;font-style:italic;line-height:1.55;color:var(--text);
+  margin-bottom:28px;max-width:780px;font-weight:300;
+}
+.exp-bullets{
+  list-style:none;display:grid;grid-template-columns:1fr 1fr;
+  gap:11px 40px;margin-bottom:30px;
+}
+.exp-bullets li{
+  font-size:13.5px;line-height:1.6;color:var(--dim);
+  padding-left:20px;position:relative;
+}
+.exp-bullets li::before{
+  content:'';position:absolute;left:0;top:9px;
+  width:8px;height:1px;
+  background:var(--c1);box-shadow:0 0 5px var(--c1);
+}
+.exp-stack{
+  display:flex;flex-wrap:wrap;gap:7px;
+  padding-top:24px;border-top:1px solid var(--border);
+}
+.exp-stack span{
+  font-family:'DM Mono',monospace;font-size:10.5px;
+  padding:5px 12px;border-radius:100px;
+  background:rgba(99,130,255,.05);
+  border:1px solid var(--border);color:var(--dim);
+  transition:all .22s;
+}
+.exp-stack span:hover{
+  color:var(--c1);border-color:rgba(79,140,255,.4);
+  background:rgba(79,140,255,.09);
+}
+
+/* =====================================================
+   CAPABILITIES
+===================================================== */
+.cap-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:16px;perspective:1200px;
+}
+.cap-card{
+  position:relative;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:20px;padding:26px 22px;
+  min-height:210px;overflow:hidden;
+  transition:all .4s;
+  box-shadow:0 16px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);
+  transform-style:preserve-3d;
+}
+.cap-card:hover{
+  transform:translateY(-6px) rotateX(4deg) translateZ(10px);
+  border-color:var(--border-hi);
+  background:var(--panel-hi);
+}
+.cap-bg-orb{
+  position:absolute;top:-30px;right:-30px;
+  width:140px;height:140px;border-radius:50%;
+  filter:blur(40px);opacity:.5;pointer-events:none;
+}
+.cap-idx{font-family:'DM Mono',monospace;font-size:10px;color:var(--c1);letter-spacing:.14em;margin-bottom:14px;}
+.cap-head{
+  font-family:'Syne',sans-serif;font-size:21px;font-weight:700;
+  line-height:1.1;color:var(--text);margin-bottom:16px;letter-spacing:-.01em;
+}
+.cap-head em{font-style:italic;color:var(--c2);}
+.cap-items{
+  font-family:'DM Mono',monospace;font-size:10.5px;
+  line-height:2;color:var(--dim);
+}
+.cap-items span{display:block;}
+
+/* =====================================================
+   CERTIFICATIONS — BIG 3D BADGES
+===================================================== */
+.cert-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:22px;
+  margin-top:60px;
+}
+.cert-badge-card{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:28px;padding:44px;
+  overflow:hidden;
+  transition:all .4s;
+  transform-style:preserve-3d;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.cert-badge-card:hover{
+  transform:rotateX(5deg) rotateY(-3deg) translateY(-8px) translateZ(16px);
+  border-color:var(--border-hi);
+  box-shadow:0 50px 100px rgba(0,0,0,.6),0 0 60px var(--glow1);
+}
+/* hexagonal badge */
+.cert-hex{
+  position:relative;width:88px;height:88px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:26px;
+}
+.cert-hex svg{position:absolute;inset:0;width:100%;height:100%;}
+.cert-hex-icon{position:relative;z-index:1;width:38px;height:38px;}
+.cert-verified{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:4px 12px;border-radius:100px;
+  background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.28);
+  color:var(--c3);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;
+  margin-bottom:16px;
+}
+.cert-verified svg{width:11px;height:11px;stroke:var(--c3);}
+.cert-name{
+  font-family:'Syne',sans-serif;font-size:30px;font-weight:700;
+  line-height:1.1;letter-spacing:-.02em;color:var(--text);margin-bottom:6px;
+}
+.cert-name em{font-style:italic;color:var(--c1);}
+.cert-issuer{
+  font-family:'DM Mono',monospace;font-size:12px;color:var(--dim);
+  display:flex;align-items:center;gap:8px;margin-top:14px;
+}
+.cert-issuer .issuer-logo{
+  width:20px;height:20px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:bold;
+}
+/* glow orbs inside cert */
+.cert-orb{
+  position:absolute;bottom:-40px;right:-40px;
+  width:220px;height:220px;border-radius:50%;
+  filter:blur(55px);opacity:.4;pointer-events:none;
+}
+/* certificate decoration lines */
+.cert-deco{
+  position:absolute;top:0;right:0;
+  width:180px;height:180px;
+  opacity:.08;pointer-events:none;
+}
+
+/* =====================================================
+   MANIFESTO STRIP
+===================================================== */
+.manifesto{
+  padding:160px 60px;
+  background:linear-gradient(180deg,var(--black) 0%,var(--deep) 50%,var(--black) 100%);
+  position:relative;overflow:hidden;
+  text-align:center;
+}
+.manifesto-orb-a{
+  position:absolute;left:-200px;top:50%;transform:translateY(-50%);
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow1),transparent 70%);
+  filter:blur(80px);opacity:.45;
+  animation:morph 14s ease-in-out infinite;
+}
+.manifesto-orb-b{
+  position:absolute;right:-200px;top:50%;transform:translateY(-50%);
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow2),transparent 70%);
+  filter:blur(70px);opacity:.4;
+  animation:morph 18s ease-in-out infinite reverse;
+}
+@keyframes morph{
+  0%,100%{border-radius:50%;transform:translateY(-50%) scale(1);}
+  50%{border-radius:40% 60% 60% 40%;transform:translateY(-50%) scale(1.1);}
+}
+.manifesto-label{
+  font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--c1);margin-bottom:32px;display:block;
+}
+.manifesto-text{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(30px,4.5vw,66px);
+  line-height:1.1;letter-spacing:-.025em;
+  color:var(--text);position:relative;z-index:2;
+  max-width:1100px;margin:0 auto;
+}
+.manifesto-text em{
+  font-style:italic;font-weight:400;
+  background:linear-gradient(120deg,var(--c1),var(--c2),var(--c4));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+/* =====================================================
+   CONTACT
+===================================================== */
+.contact{padding:100px 60px 80px;}
+.contact-card{
+  max-width:1380px;margin:0 auto;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:32px;padding:80px;
+  position:relative;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.contact-orb-a{
+  position:absolute;top:-120px;right:-80px;
+  width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow1),transparent 70%);
+  filter:blur(60px);opacity:.5;pointer-events:none;
+}
+.contact-orb-b{
+  position:absolute;bottom:-150px;left:-100px;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,var(--glow2),transparent 70%);
+  filter:blur(70px);opacity:.4;pointer-events:none;
+}
+.contact-title{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(48px,7vw,100px);
+  line-height:.95;letter-spacing:-.03em;
+  color:var(--text);max-width:860px;margin-bottom:18px;
+  position:relative;
+}
+.contact-title em{
+  font-style:italic;font-weight:400;
+  background:linear-gradient(120deg,var(--c1),var(--c2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.contact-sub{
+  font-size:17px;color:var(--dim);max-width:500px;
+  margin-bottom:60px;position:relative;line-height:1.7;
+}
+.contact-links{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  position:relative;
+}
+.cl{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px 28px;
+  background:rgba(7,9,20,.6);
+  border:1px solid var(--border);border-radius:20px;
+  text-decoration:none;color:inherit;
+  transition:all .35s;
+}
+.cl:hover{
+  border-color:var(--c1);
+  background:rgba(79,140,255,.07);
+  transform:translateY(-4px);
+  box-shadow:0 24px 48px rgba(0,0,0,.35),0 0 30px var(--glow1);
+}
+.cl:hover .cl-arrow{transform:translate(5px,-5px);color:var(--c1);}
+.cl-left{display:flex;flex-direction:column;gap:5px;}
+.cl-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+.cl-value{font-family:'Syne',sans-serif;font-size:22px;font-weight:600;color:var(--text);}
+.cl-arrow{font-size:20px;color:var(--dim);transition:all .35s;}
+
+.footer-bar{
+  max-width:1380px;margin:48px auto 0;
+  display:flex;justify-content:space-between;
+  padding-top:28px;border-top:1px solid var(--border);
+  font-family:'DM Mono',monospace;font-size:10.5px;
+  color:var(--muted);letter-spacing:.08em;flex-wrap:wrap;gap:16px;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media(max-width:1100px){
+  .focus-grid{grid-template-columns:1fr 1fr;}
+  .cap-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:700px){
+  section{padding:90px 24px;}
+  .hero{padding:130px 24px 70px;}
+  .focus-grid{grid-template-columns:1fr;}
+  .cap-grid{grid-template-columns:1fr;}
+  .cert-row{grid-template-columns:1fr;}
+  .contact-links{grid-template-columns:1fr;}
+  .contact-card{padding:44px 28px;}
+  .exp-bullets{grid-template-columns:1fr;}
+  .exp-entry{padding:36px 28px;}
+  .nav{padding:0 20px;}
+  .tech-chip{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div class="grain"></div>
+<div class="vignette"></div>
+<canvas id="bg-canvas"></canvas>
+
+<main>
+
+<!-- ================================================
+  NAV
+================================================= -->
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="nav-dot"></span>
+    DEEP AMAN GANTA
+  </div>
+  <div class="nav-links">
+    <a href="#focus">Focus</a>
+    <a href="#work">Work</a>
+    <a href="#stack">Stack</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- ================================================
+  HERO
+================================================= -->
+<section class="hero">
+
+  <!-- floating tech chips -->
+  <div class="tech-chip" style="top:18%;right:6%;animation-delay:0s;">
+    <svg class="chi" viewBox="0 0 24 24" fill="none" stroke="#4f8cff" stroke-width="1.4"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    LangGraph Agent
+  </div>
+  <div class="tech-chip" style="top:42%;right:3%;animation-delay:-3s;">
+    <svg class="chi" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.4"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    AKS · Kubernetes
+  </div>
+  <div class="tech-chip" style="bottom:24%;right:8%;animation-delay:-6s;">
+    <svg class="chi" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.4"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+    Vector · Hybrid RAG
+  </div>
+  <div class="tech-chip" style="top:65%;right:2%;animation-delay:-9s;">
+    <svg class="chi" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.4"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg>
+    Prompt Defense
+  </div>
+
+  <div class="hero-scene">
+    <div class="hero-badge">
+      <span class="live"></span>
+      AVAILABLE · REMOTE · BUFFALO, NY
+    </div>
+
+    <h1 class="hero-title">
+      <span class="line"><span class="inner">Engineering</span></span>
+      <span class="line"><span class="inner grad">Intelligent</span></span>
+      <span class="line"><span class="inner">Systems.</span></span>
+    </h1>
+
+    <div class="hero-sub-row">
+      <p class="hero-desc">
+        <strong>AI Engineer with ~4 years</strong> building production-grade agentic systems, retrieval pipelines, and safety guardrails. Currently at <strong>Ford</strong>, designing the infrastructure that makes LLMs trustworthy at scale.
+      </p>
+      <div class="hero-stats">
+        <div class="hstat"><span class="val">4<span style="font-size:.6em;color:var(--c1)">yrs</span></span><span class="lbl">Experience</span></div>
+        <div class="hstat"><span class="val">2<span style="font-size:.6em;color:var(--c2)">×</span></span><span class="lbl">Certified</span></div>
+        <div class="hstat"><span class="val">3</span><span class="lbl">Domains</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+  TECH ORBIT STRIP
+================================================= -->
+<div class="tech-orbit">
+  <div class="orbit-track" id="orbit">
+    <!-- rendered by JS -->
+  </div>
+</div>
+
+<!-- ================================================
+  FOCUS
+================================================= -->
+<section id="focus">
+  <div class="max">
+    <div class="s-label">01 · Focus</div>
+    <h2 class="s-title">Where the <em>real work</em><br/>of AI lives.</h2>
+    <p class="s-sub">Agentic systems aren't magic — they're orchestration, retrieval, validation, and the quiet art of refusal. Six domains I operate in daily.</p>
+
+    <div class="focus-grid">
+
+      <div class="fc" style="--hov-c:var(--c1);">
+        <div class="fc-glow" style="background:radial-gradient(circle,var(--glow1),transparent 70%);"></div>
+        <span class="fc-num">001</span>
+        <div class="fc-icon-wrap">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4f8cff" stroke-width="1.4">
+            <circle cx="12" cy="12" r="2.5"/>
+            <circle cx="3.5" cy="5" r="1.8"/><circle cx="3.5" cy="19" r="1.8"/>
+            <circle cx="20.5" cy="5" r="1.8"/><circle cx="20.5" cy="19" r="1.8"/>
+            <circle cx="12" cy="2" r="1.5"/><circle cx="12" cy="22" r="1.5"/>
+            <line x1="5.2" y1="6" x2="10.6" y2="10.8"/><line x1="5.2" y1="18" x2="10.6" y2="13.2"/>
+            <line x1="18.8" y1="6" x2="13.4" y2="10.8"/><line x1="18.8" y1="18" x2="13.4" y2="13.2"/>
+            <line x1="12" y1="3.5" x2="12" y2="9.5"/><line x1="12" y1="14.5" x2="12" y2="20.5"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Agentic <em>Orchestration</em></h3>
+        <p class="fc-desc">State-based routing across document-RAG, text-to-SQL, and constrained knowledge. LangGraph agents with intent classification and controlled execution flow.</p>
+        <div class="fc-tags"><span>LangGraph</span><span>LangChain</span><span>Intent Routing</span><span>Tool Orchestration</span></div>
+      </div>
+
+      <div class="fc">
+        <div class="fc-glow" style="background:radial-gradient(circle,var(--glow2),transparent 70%);"></div>
+        <span class="fc-num">002</span>
+        <div class="fc-icon-wrap" style="background:rgba(167,139,250,.08);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.4">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <line x1="9" y1="10" x2="15" y2="10"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Grounded <em>Retrieval</em></h3>
+        <p class="fc-desc">Hybrid vector + keyword retrieval via Azure AI Search. Citation-backed answers, confidence thresholds, and refusal fallbacks — retrieval that refuses to hallucinate.</p>
+        <div class="fc-tags"><span>Azure AI Search</span><span>Embeddings</span><span>Hybrid Retrieval</span><span>Citations</span></div>
+      </div>
+
+      <div class="fc">
+        <div class="fc-glow" style="background:radial-gradient(circle,rgba(251,146,60,.3),transparent 70%);"></div>
+        <span class="fc-num">003</span>
+        <div class="fc-icon-wrap" style="background:rgba(251,146,60,.08);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.4">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Guarded <em>Text-to-SQL</em></h3>
+        <p class="fc-desc">Schema injection, structured prompting, post-generation SQL validation. Read-only access, allowlists, row limits, and timeouts built in from day zero.</p>
+        <div class="fc-tags"><span>Schema Injection</span><span>SQL Validation</span><span>Allowlists</span><span>Guardrails</span></div>
+      </div>
+
+      <div class="fc">
+        <div class="fc-glow" style="background:radial-gradient(circle,rgba(244,114,182,.3),transparent 70%);"></div>
+        <span class="fc-num">004</span>
+        <div class="fc-icon-wrap" style="background:rgba(244,114,182,.08);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.4">
+            <path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Safety &amp; <em>Defense</em></h3>
+        <p class="fc-desc">Prompt-injection defense on user input and retrieved content. Tool allowlisting, PII-safe filtering, rate limits, refusal logic, and full audit logging.</p>
+        <div class="fc-tags"><span>Injection Defense</span><span>PII Filtering</span><span>Rate Limiting</span><span>Audit Logging</span></div>
+      </div>
+
+      <div class="fc">
+        <div class="fc-glow" style="background:radial-gradient(circle,var(--glow3),transparent 70%);"></div>
+        <span class="fc-num">005</span>
+        <div class="fc-icon-wrap" style="background:rgba(52,211,153,.08);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.4">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8m-4-4v4"/>
+            <path d="M7 8l3 3-3 3"/>
+            <line x1="13" y1="11" x2="17" y2="11"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Cloud-Native <em>Deploy</em></h3>
+        <p class="fc-desc">Stateless APIs on AKS with autoscaling, persisted session state, managed configuration. Azure Monitor for latency tracking, failure analysis, tool-level observability.</p>
+        <div class="fc-tags"><span>AKS</span><span>Docker</span><span>Autoscaling</span><span>Azure Monitor</span></div>
+      </div>
+
+      <div class="fc">
+        <div class="fc-glow" style="background:radial-gradient(circle,var(--glow1),transparent 70%);"></div>
+        <span class="fc-num">006</span>
+        <div class="fc-icon-wrap">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4f8cff" stroke-width="1.4">
+            <path d="M3 3v18h18"/><path d="M7 12l4-4 4 3 4-6"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Evaluation <em>Pipelines</em></h3>
+        <p class="fc-desc">Low-cost quality evaluation combining deterministic signals — tool success, citations, latency, repeated queries — with lightweight LLM classification to drive improvement.</p>
+        <div class="fc-tags"><span>Evals</span><span>LLM Scoring</span><span>Telemetry</span><span>Quality Loops</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+  EXPERIENCE
+================================================= -->
+<section id="work">
+  <div class="max">
+    <div class="s-label">02 · Work</div>
+    <h2 class="s-title">The record,<br/><em>in full.</em></h2>
+    <p class="s-sub">Automotive intelligence, e-commerce NLP, and smart agriculture — three domains, one consistent discipline.</p>
+
+    <!-- FORD -->
+    <article class="exp-entry">
+      <div class="exp-top">
+        <div>
+          <div class="exp-role">AI Engineer <em>— Ford</em></div>
+          <div class="exp-co"><span class="co-pip"></span>Automotive · Enterprise GenAI · Remote</div>
+        </div>
+        <div class="exp-meta">
+          <span class="period">May 2024 — Present</span>
+          <span class="badge-status badge-current">● Current</span>
+        </div>
+      </div>
+      <p class="exp-summary">"The interesting engineering happens between the LLM calls — in the routing, the retrieval, the refusals, and the things that make the system honest."</p>
+      <ul class="exp-bullets">
+        <li>Agentic GenAI platform with deterministic routing across document-RAG, text-to-SQL, and constrained knowledge.</li>
+        <li>Azure Document Intelligence + Azure OpenAI embeddings, hybrid vector/keyword retrieval with citation enforcement.</li>
+        <li>Text-to-SQL from scratch: schema injection, structured prompting, post-generation SQL validation and guardrails.</li>
+        <li>LangGraph state-machine orchestration — intent classification, tool eligibility checks, controlled execution.</li>
+        <li>Prompt-injection defenses on both user input and retrieved content; tool allowlisting, PII filtering, rate limits.</li>
+        <li>Stateless APIs on Azure Kubernetes Service with autoscaling and persisted session state.</li>
+        <li>Azure Monitor integration for latency tracking, failure analysis, and tool-level observability.</li>
+        <li>Conversation quality eval pipeline combining deterministic signals with lightweight LLM classification.</li>
+      </ul>
+      <div class="exp-stack">
+        <span>Python</span><span>LangChain</span><span>LangGraph</span><span>Azure OpenAI</span>
+        <span>Azure AI Search</span><span>Azure Doc Intelligence</span><span>Azure SQL</span>
+        <span>AKS</span><span>Docker</span><span>Azure Monitor</span>
+      </div>
+    </article>
+
+    <!-- VENINFOS -->
+    <article class="exp-entry">
+      <div class="exp-top">
+        <div>
+          <div class="exp-role">ML Engineer <em>— Veninfos</em></div>
+          <div class="exp-co"><span class="co-pip"></span>E-commerce · Applied NLP · India</div>
+        </div>
+        <div class="exp-meta">
+          <span class="period">Jun 2022 — Jul 2023</span>
+          <span class="badge-status badge-prior">○ Prior</span>
+        </div>
+      </div>
+      <p class="exp-summary">"End-to-end NLP at production scale — the preprocessing, the pipelines, the drift monitoring. All the unglamorous parts that made it work."</p>
+      <ul class="exp-bullets">
+        <li>Productionized sentiment classification with TF-IDF, Logistic Regression, SVM via Flask REST on AWS EC2.</li>
+        <li>Text preprocessing: token normalization, lemmatization, stop-word filtering, NER, text classification.</li>
+        <li>Word2Vec embeddings for semantic nuance; better feature extraction from unstructured review data.</li>
+        <li>ETL pipelines via Apache Airflow + AWS Glue — automated ingestion, cleaning, transformation at scale.</li>
+        <li>ML lifecycle streamlined with MLflow: experiment tracking, model versioning, reproducibility.</li>
+        <li>Docker containerization + Kubernetes orchestration; AWS CloudWatch for drift, latency, system health.</li>
+        <li>Tableau and Power BI dashboards for sentiment trends, feedback loops, and strategy alignment.</li>
+      </ul>
+      <div class="exp-stack">
+        <span>Python</span><span>Scikit-learn</span><span>Flask</span><span>Apache Airflow</span>
+        <span>AWS Glue</span><span>MLflow</span><span>Word2Vec</span><span>NER</span>
+        <span>Docker</span><span>Kubernetes</span><span>AWS EC2</span><span>CloudWatch</span>
+        <span>Tableau</span><span>Power BI</span>
+      </div>
+    </article>
+
+    <!-- SMART BRIDGE -->
+    <article class="exp-entry">
+      <div class="exp-top">
+        <div>
+          <div class="exp-role">Developer Intern <em>— Smart Bridge × IBM</em></div>
+          <div class="exp-co"><span class="co-pip"></span>Smart Agriculture · Computer Vision · India</div>
+        </div>
+        <div class="exp-meta">
+          <span class="period">Feb 2022 — Apr 2022</span>
+          <span class="badge-status badge-prior">○ Internship</span>
+        </div>
+      </div>
+      <p class="exp-summary">"CNN-based leaf disease detection for early agricultural intervention — built to be usable by farmers, not just admired by engineers."</p>
+      <ul class="exp-bullets">
+        <li>Curated 20,000+ annotated leaf images; resizing, normalization, augmentation across plant species.</li>
+        <li>Fine-tuned VGG16 with transfer learning; cross-entropy loss and confusion matrix validation.</li>
+        <li>Deployed model as Flask REST API with real-time HTTP predictions and OpenCV validation layer.</li>
+        <li>Responsive multilingual web UI for rural accessibility — farmers uploading images, receiving instant diagnosis.</li>
+        <li>Modular architecture enabling future serverless migration to AWS Lambda or Azure Functions.</li>
+      </ul>
+      <div class="exp-stack">
+        <span>Python</span><span>TensorFlow</span><span>Keras</span><span>VGG16</span>
+        <span>Transfer Learning</span><span>Flask</span><span>OpenCV</span><span>HTML/CSS</span><span>Bootstrap</span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================
+  CAPABILITIES + CERTS
+================================================= -->
+<section id="stack">
+  <div class="max">
+    <div class="s-label">03 · Stack</div>
+    <h2 class="s-title">The instruments<br/>of <em>the craft.</em></h2>
+    <p class="s-sub">Production reliability over hype. Dual-certified on both major cloud platforms.</p>
+
+    <div class="cap-grid">
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,var(--glow1),transparent 70%);"></div>
+        <div class="cap-idx">01 · GENERATIVE AI</div>
+        <div class="cap-head">Language <em>Models</em></div>
+        <div class="cap-items">
+          <span>LangChain · LangGraph</span>
+          <span>Hugging Face</span>
+          <span>OpenAI GPT · Azure OpenAI</span>
+          <span>RAG · RLHF · PEFT</span>
+          <span>Intelligent Agents</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,var(--glow2),transparent 70%);"></div>
+        <div class="cap-idx">02 · PROMPTING</div>
+        <div class="cap-head">Structured <em>Prompts</em></div>
+        <div class="cap-items">
+          <span>Few-shot / Zero-shot</span>
+          <span>Instruction Tuning</span>
+          <span>Chain-of-Thought</span>
+          <span>Retrieval-Augmented</span>
+          <span>Schema Injection</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,rgba(251,146,60,.28),transparent 70%);"></div>
+        <div class="cap-idx">03 · DEEP LEARNING</div>
+        <div class="cap-head">Neural <em>Architectures</em></div>
+        <div class="cap-items">
+          <span>Transformer Models</span>
+          <span>RNN · CNN</span>
+          <span>Transfer Learning</span>
+          <span>Tokenization · NER</span>
+          <span>Word2Vec · Sentiment</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,var(--glow3),transparent 70%);"></div>
+        <div class="cap-idx">04 · CLASSICAL ML</div>
+        <div class="cap-head">ML <em>Foundations</em></div>
+        <div class="cap-items">
+          <span>Clustering · Segmentation</span>
+          <span>Bagging · Boosting</span>
+          <span>Decision Trees · RF · GBM</span>
+          <span>SVM · K-Means · KNN</span>
+          <span>Feature Engineering</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,var(--glow1),transparent 70%);"></div>
+        <div class="cap-idx">05 · AZURE CLOUD</div>
+        <div class="cap-head">Azure <em>Platform</em></div>
+        <div class="cap-items">
+          <span>Azure OpenAI · AI Search</span>
+          <span>Kubernetes (AKS)</span>
+          <span>Document Intelligence</span>
+          <span>Cosmos DB · Blob Storage</span>
+          <span>Monitor · Cognitive Svc</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,var(--glow2),transparent 70%);"></div>
+        <div class="cap-idx">06 · AWS CLOUD</div>
+        <div class="cap-head">AWS <em>Platform</em></div>
+        <div class="cap-items">
+          <span>SageMaker · Lambda</span>
+          <span>EC2 · S3 · RDS</span>
+          <span>DynamoDB · Glue</span>
+          <span>CloudWatch</span>
+          <span>Bedrock (exploring)</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,rgba(251,146,60,.28),transparent 70%);"></div>
+        <div class="cap-idx">07 · MLOPS</div>
+        <div class="cap-head">Deploy <em>&amp; Ops</em></div>
+        <div class="cap-items">
+          <span>Docker · Kubernetes</span>
+          <span>MLflow · Apache Airflow</span>
+          <span>AWS SageMaker</span>
+          <span>CI / CD Pipelines</span>
+          <span>Model Monitoring</span>
+        </div>
+      </div>
+      <div class="cap-card">
+        <div class="cap-bg-orb" style="background:radial-gradient(circle,var(--glow3),transparent 70%);"></div>
+        <div class="cap-idx">08 · ENGINEERING</div>
+        <div class="cap-head">Core <em>Craft</em></div>
+        <div class="cap-items">
+          <span>Python · PyTorch</span>
+          <span>NumPy · Pandas · Sklearn</span>
+          <span>Flask · REST APIs</span>
+          <span>SQL · MySQL · PostgreSQL</span>
+          <span>Git · Jupyter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CERTIFICATIONS -->
+    <div class="cert-row">
+
+      <!-- AWS -->
+      <div class="cert-badge-card">
+        <div class="cert-orb" style="background:radial-gradient(circle,rgba(255,153,0,.35),transparent 70%);"></div>
+        <!-- decorative corner lines -->
+        <svg class="cert-deco" viewBox="0 0 180 180" fill="none">
+          <circle cx="180" cy="0" r="150" stroke="white" stroke-width="1"/>
+          <circle cx="180" cy="0" r="110" stroke="white" stroke-width="1" stroke-dasharray="3 6"/>
+        </svg>
+
+        <div class="cert-hex">
+          <!-- hex shape -->
+          <svg viewBox="0 0 88 88">
+            <defs>
+              <linearGradient id="awsHex" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff9900" stop-opacity=".25"/>
+                <stop offset="100%" stop-color="#ff6600" stop-opacity=".1"/>
+              </linearGradient>
+            </defs>
+            <polygon points="44,2 84,23 84,65 44,86 4,65 4,23" fill="url(#awsHex)" stroke="#ff9900" stroke-width="1.5" stroke-opacity=".6"/>
+            <polygon points="44,10 78,28 78,62 44,80 10,62 10,28" fill="none" stroke="#ff9900" stroke-width=".6" stroke-opacity=".25" stroke-dasharray="2 4"/>
+          </svg>
+          <!-- AWS SVG icon -->
+          <svg class="cert-hex-icon" viewBox="0 0 48 48" fill="none">
+            <path d="M14.6 26.5c0 .8.1 1.5.2 2 .2.6.4 1.2.7 1.9.1.2.2.5.2.7 0 .3-.2.6-.5.9l-1.7 1.1c-.2.2-.5.2-.7.2-.3 0-.5-.1-.8-.3-.4-.4-.7-.8-1-1.3-.3-.5-.6-1-.8-1.7-2 2.4-4.5 3.6-7.5 3.6-2.1 0-3.8-.6-5-1.8-1.2-1.2-1.9-2.8-1.9-4.9 0-2.2.8-3.9 2.3-5.2 1.5-1.3 3.5-1.9 6-1.9 .8 0 1.7.1 2.6.2.9.1 1.8.3 2.8.6v-1.8c0-1.9-.4-3.2-1.2-4-.8-.8-2.1-1.1-4-1.1-.9 0-1.7.1-2.6.3-.9.2-1.8.5-2.6.9-.4.2-.7.3-.9.3-.3 0-.5-.2-.5-.7v-1.2c0-.4.1-.7.2-.8.2-.2.4-.3.8-.5.9-.5 1.9-.8 3.1-1.1 1.2-.3 2.5-.4 3.8-.4 2.9 0 5 .7 6.3 2 1.3 1.3 1.9 3.3 1.9 6v7.9zM8.9 29.2c.8 0 1.7-.1 2.5-.5.9-.3 1.7-.9 2.3-1.7.4-.5.6-1 .7-1.5.1-.5.2-1.1.2-1.9v-.9c-.7-.2-1.4-.3-2.2-.4-.7-.1-1.5-.1-2.2-.1-1.6 0-2.8.3-3.5.9-.8.6-1.1 1.5-1.1 2.6 0 1 .3 1.8.8 2.3.5.8 1.4 1.2 2.5 1.2zm18.8 2.5c-.4 0-.7-.1-.9-.2-.2-.1-.4-.4-.5-.8l-5.9-19.4c-.1-.4-.2-.7-.2-.9 0-.3.2-.5.5-.5h2.3c.4 0 .7.1.9.2.2.1.3.4.5.8l4.2 16.6 3.9-16.6c.1-.4.3-.7.5-.8.2-.1.5-.2.9-.2h1.9c.4 0 .7.1.9.2.2.1.4.4.5.8l4 16.8 4.3-16.8c.1-.4.3-.7.5-.8.2-.1.5-.2.9-.2h2.2c.3 0 .5.2.5.5 0 .1 0 .2-.1.4-.1.2-.1.4-.2.6l-6.1 19.4c-.1.4-.3.7-.5.8-.2.1-.5.2-.9.2h-2c-.4 0-.7-.1-.9-.2-.2-.1-.4-.4-.5-.8l-3.9-16.1-3.9 16.1c-.1.4-.3.7-.5.8-.2.1-.5.2-.9.2H27.7zm32.5.6c-1.3 0-2.6-.1-3.8-.5-1.2-.3-2.1-.7-2.8-1.1-.4-.2-.6-.5-.7-.8-.1-.2-.1-.5-.1-.7v-1.3c0-.5.2-.7.5-.7.1 0 .3 0 .4.1.1 0 .3.1.5.2.7.3 1.4.5 2.2.7.8.2 1.5.2 2.3.2 1.2 0 2.2-.2 2.9-.6.6-.4.9-1 .9-1.8 0-.5-.2-1-.5-1.3-.3-.4-.9-.7-2-1l-2.8-.9c-1.4-.5-2.5-1.1-3.1-2-.7-.9-1-1.9-1-2.9 0-.8.2-1.6.5-2.2.3-.7.8-1.2 1.4-1.7.6-.5 1.3-.8 2.1-1.1.8-.2 1.7-.3 2.6-.3.5 0 .9 0 1.4.1.5.1.9.1 1.3.2.4.1.8.2 1.1.3.3.1.6.2.7.3.2.1.4.3.5.5.1.2.1.4.1.7v1.2c0 .5-.2.7-.5.7-.2 0-.5-.1-.9-.2-.6-.3-1.7-.6-3-.6-1.1 0-2 .2-2.6.6-.6.4-.9.9-.9 1.7 0 .5.2 1 .5 1.3.3.4 1 .7 2.1 1.1l2.8.9c1.4.5 2.4 1.1 3 2 .6.8.9 1.8.9 2.8 0 .8-.2 1.6-.5 2.3-.3.7-.8 1.3-1.4 1.8-.6.5-1.4.9-2.2 1.1-.9.3-1.9.5-2.9.5z" fill="#ff9900"/>
+          </svg>
+        </div>
+        <div class="cert-verified">
+          <svg viewBox="0 0 12 12" fill="none" stroke-width="1.5"><path d="M10 3L5 8.5 2 5.5"/></svg>
+          ACTIVE · VERIFIED
+        </div>
+        <div class="cert-name">AWS <em>Machine Learning</em><br/>Engineer Associate</div>
+        <div class="cert-issuer">
+          <div class="issuer-logo" style="background:rgba(255,153,0,.15);color:#ff9900;">AWS</div>
+          Amazon Web Services
+        </div>
+      </div>
+
+      <!-- Azure -->
+      <div class="cert-badge-card">
+        <div class="cert-orb" style="background:radial-gradient(circle,var(--glow1),transparent 70%);"></div>
+        <svg class="cert-deco" viewBox="0 0 180 180" fill="none">
+          <circle cx="180" cy="0" r="150" stroke="white" stroke-width="1"/>
+          <circle cx="180" cy="0" r="110" stroke="white" stroke-width="1" stroke-dasharray="3 6"/>
+        </svg>
+
+        <div class="cert-hex">
+          <svg viewBox="0 0 88 88">
+            <defs>
+              <linearGradient id="azHex" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0078d4" stop-opacity=".3"/>
+                <stop offset="100%" stop-color="#50b0f0" stop-opacity=".1"/>
+              </linearGradient>
+            </defs>
+            <polygon points="44,2 84,23 84,65 44,86 4,65 4,23" fill="url(#azHex)" stroke="#0078d4" stroke-width="1.5" stroke-opacity=".7"/>
+            <polygon points="44,10 78,28 78,62 44,80 10,62 10,28" fill="none" stroke="#0078d4" stroke-width=".6" stroke-opacity=".3" stroke-dasharray="2 4"/>
+          </svg>
+          <!-- Azure icon -->
+          <svg class="cert-hex-icon" viewBox="0 0 48 48" fill="none">
+            <path d="M17.5 8h13.8L17.1 40H4L17.5 8zM26.8 8h9.8l-18 32.7-9.5-1.4L26.8 8z" fill="#0078d4"/>
+            <path d="M28.5 17l9.3 16.1L44 40H22.2L28.5 17z" fill="#0078d4" opacity=".7"/>
+          </svg>
+        </div>
+        <div class="cert-verified">
+          <svg viewBox="0 0 12 12" fill="none" stroke-width="1.5"><path d="M10 3L5 8.5 2 5.5"/></svg>
+          ACTIVE · VERIFIED
+        </div>
+        <div class="cert-name">Azure <em>AI Engineer</em><br/>Associate</div>
+        <div class="cert-issuer">
+          <div class="issuer-logo" style="background:rgba(0,120,212,.15);color:#0078d4;">Az</div>
+          Microsoft Azure
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+  MANIFESTO
+================================================= -->
+<div class="manifesto">
+  <div class="manifesto-orb-a"></div>
+  <div class="manifesto-orb-b"></div>
+  <span class="manifesto-label">§ — A Note on Method</span>
+  <p class="manifesto-text">
+    Good AI engineering is <em>less about the model</em> and more about what surrounds it — the retrieval, the guardrails, the refusals, the telemetry. Systems that know <em>when to answer</em> and when to say no.
+  </p>
+</div>
+
+<!-- ================================================
+  CONTACT
+================================================= -->
+<section id="contact" class="contact">
+  <div class="contact-card">
+    <div class="contact-orb-a"></div>
+    <div class="contact-orb-b"></div>
+    <h2 class="contact-title">Let's build<br/><em>something real.</em></h2>
+    <p class="contact-sub">Open to select remote engagements in applied AI, agentic systems, and retrieval infrastructure. Based in Buffalo, NY — working with teams worldwide.</p>
+    <div class="contact-links">
+      <a class="cl" href="mailto:deep.ganta@gmail.com">
+        <div class="cl-left">
+          <span class="cl-label">01 · Email</span>
+          <span class="cl-value">deep.ganta@gmail.com</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      <a class="cl" href="tel:+17162268898">
+        <div class="cl-left">
+          <span class="cl-label">02 · Phone</span>
+          <span class="cl-value">+1 716 226 8898</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      <a class="cl" href="#">
+        <div class="cl-left">
+          <span class="cl-label">03 · Location</span>
+          <span class="cl-value">Buffalo, NY · Remote</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      <a class="cl" href="#">
+        <div class="cl-left">
+          <span class="cl-label">04 · LinkedIn</span>
+          <span class="cl-value">/in/deepamanganta</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span>© 2026 Deep Aman Ganta</span>
+    <span>Syne · DM Sans · DM Mono</span>
+    <span>v3.0 · Portfolio</span>
+  </div>
+</section>
+
+</main>
+
+<!-- ================================================
+  SCRIPTS
+================================================= -->
+<script>
+/* ---- cursor ---- */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function animRing(){rx+=(mx-rx)*.14;ry+=(my-ry)*.14;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);})();
+
+/* ---- canvas: neural particle field ---- */
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[],connections=[];
+
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();
+window.addEventListener('resize',()=>{resize();init();});
+
+const COLORS=['rgba(79,140,255,','rgba(167,139,250,','rgba(52,211,153,','rgba(251,146,60,'];
+
+class Particle{
+  constructor(){this.reset(true);}
+  reset(rand=false){
+    this.x=rand?Math.random()*W:Math.random()*W;
+    this.y=rand?Math.random()*H:Math.random()*H;
+    this.vx=(Math.random()-.5)*.3;
+    this.vy=(Math.random()-.5)*.3;
+    this.r=Math.random()*2+1;
+    this.col=COLORS[Math.floor(Math.random()*COLORS.length)];
+    this.alpha=Math.random()*.6+.2;
+    this.pulse=Math.random()*Math.PI*2;
+    this.pulseSpeed=.01+Math.random()*.02;
+  }
+  update(){
+    this.x+=this.vx;this.y+=this.vy;
+    this.pulse+=this.pulseSpeed;
+    if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();
+  }
+  draw(){
+    const a=this.alpha*(0.7+0.3*Math.sin(this.pulse));
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=this.col+a+')';
+    ctx.fill();
+    // glow
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.r*3,0,Math.PI*2);
+    const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r*3);
+    g.addColorStop(0,this.col+(a*.4)+')');
+    g.addColorStop(1,this.col+'0)');
+    ctx.fillStyle=g;
+    ctx.fill();
+  }
+}
+
+function init(){
+  particles=[];
+  const count=Math.min(110,Math.floor(W*H/14000));
+  for(let i=0;i<count;i++)particles.push(new Particle());
+}
+
+function connectParticles(){
+  const maxDist=180;
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x;
+      const dy=particles[i].y-particles[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<maxDist){
+        const alpha=(1-dist/maxDist)*.25;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle=`rgba(79,140,255,${alpha})`;
+        ctx.lineWidth=.6;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+/* big 3D sphere wireframe in bg */
+const SPHERE_NODES=[];
+(function buildSphere(){
+  const R=Math.min(W,H)*0.38;
+  const layers=12,perLayer=18;
+  for(let i=0;i<layers;i++){
+    const phi=Math.PI*(i+1)/(layers+1);
+    for(let j=0;j<perLayer;j++){
+      const theta=(Math.PI*2*j)/perLayer;
+      SPHERE_NODES.push({
+        ox:Math.sin(phi)*Math.cos(theta)*R,
+        oy:Math.cos(phi)*R,
+        oz:Math.sin(phi)*Math.sin(theta)*R,
+        phase:Math.random()*Math.PI*2
+      });
+    }
+  }
+})();
+
+let angle=0;
+
+function drawSphere(t){
+  const cx=W*.7,cy=H*.42;
+  angle+=.0012;
+  const cosA=Math.cos(angle),sinA=Math.sin(angle);
+  const cosB=Math.cos(.18),sinB=Math.sin(.18);
+
+  const projected=SPHERE_NODES.map((n,i)=>{
+    // Y-axis rotation
+    const rx=n.ox*cosA-n.oz*sinA;
+    const ry=n.oy;
+    const rz=n.ox*sinA+n.oz*cosA;
+    // X-axis tilt
+    const rx2=rx;
+    const ry2=ry*cosB-rz*sinB;
+    const rz2=ry*sinB+rz*cosB;
+    const perspective=900/(900+rz2);
+    const a=(0.4+Math.sin(n.phase+t*.0008)*.15)*perspective;
+    return{x:cx+rx2*perspective,y:cy+ry2*perspective,z:rz2,a,i};
+  });
+
+  // edges: connect nearby
+  for(let i=0;i<projected.length;i++){
+    for(let j=i+1;j<projected.length;j++){
+      const dx=projected[i].x-projected[j].x;
+      const dy=projected[i].y-projected[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      const thresh=Math.min(W,H)*.072;
+      if(d<thresh){
+        const a=(1-d/thresh)*projected[i].a*projected[j].a*.6;
+        ctx.beginPath();
+        ctx.moveTo(projected[i].x,projected[i].y);
+        ctx.lineTo(projected[j].x,projected[j].y);
+        ctx.strokeStyle=`rgba(79,140,255,${a})`;
+        ctx.lineWidth=.5;
+        ctx.stroke();
+      }
+    }
+  }
+  // nodes
+  projected.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,1.2*((900+p.z)/(900+Math.min(W,H)*.38)),0,Math.PI*2);
+    ctx.fillStyle=`rgba(99,130,255,${p.a})`;
+    ctx.fill();
+  });
+}
+
+function loop(t){
+  ctx.clearRect(0,0,W,H);
+  drawSphere(t);
+  connectParticles();
+  particles.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(loop);
+}
+init();
+requestAnimationFrame(loop);
+
+/* ---- Tech orbit strip ---- */
+const techs=[
+  {name:'Python',col:'#4b8bbe',icon:'🐍'},
+  {name:'PyTorch',col:'#ee4c2c',icon:'🔥'},
+  {name:'LangChain',col:'#4f8cff',icon:'⛓'},
+  {name:'LangGraph',col:'#a78bfa',icon:'◈'},
+  {name:'Azure OpenAI',col:'#0078d4',icon:'☁'},
+  {name:'Kubernetes',col:'#326ce5',icon:'⎈'},
+  {name:'Docker',col:'#0db7ed',icon:'🐳'},
+  {name:'MLflow',col:'#0194e2',icon:'📊'},
+  {name:'Hugging Face',col:'#ffca3a',icon:'🤗'},
+  {name:'Apache Airflow',col:'#017cee',icon:'◉'},
+  {name:'TensorFlow',col:'#ff6f00',icon:'⚡'},
+  {name:'AWS SageMaker',col:'#ff9900',icon:'▲'},
+  {name:'PostgreSQL',col:'#336791',icon:'🐘'},
+  {name:'Scikit-learn',col:'#f89939',icon:'◎'},
+  {name:'Pinecone',col:'#1c7ed6',icon:'🌲'},
+  {name:'Vector DB',col:'#7c3aed',icon:'◆'},
+];
+
+function buildOrbit(){
+  const track=document.getElementById('orbit');
+  const doubled=[...techs,...techs];
+  track.innerHTML=doubled.map(t=>`
+    <div class="orbit-item">
+      <svg class="orbit-icon" viewBox="0 0 32 32">
+        <rect width="32" height="32" rx="8" fill="${t.col}" opacity=".15"/>
+        <text x="16" y="21" text-anchor="middle" font-size="15" font-family="DM Mono,monospace">${t.icon}</text>
+      </svg>
+      <span class="orbit-name">${t.name}</span>
+    </div>
+  `).join('');
+}
+buildOrbit();
+
+/* ---- 3D tilt on cards ---- */
+document.querySelectorAll('.fc,.cap-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=e.clientX-r.left,y=e.clientY-r.top;
+    const cx=r.width/2,cy=r.height/2;
+    const rx=((y-cy)/cy)*-7;
+    const ry=((x-cx)/cx)*7;
+    card.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) translateY(-8px) translateZ(20px)`;
+  });
+  card.addEventListener('mouseleave',()=>card.style.transform='');
+});
+
+document.querySelectorAll('.cert-badge-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const rx=((e.clientY-r.top-r.height/2)/r.height*2)*-6;
+    const ry=((e.clientX-r.left-r.width/2)/r.width*2)*5;
+    card.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) translateY(-10px) translateZ(24px)`;
+  });
+  card.addEventListener('mouseleave',()=>card.style.transform='');
+});
+
+/* ---- smooth scroll ---- */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const el=document.querySelector(a.getAttribute('href'));
+    if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
+</script>
+</body>
+</html>
